@@ -396,7 +396,9 @@ cd frontend && npm run build
 
 Credenciales de acceso: las define el usuario en `backend/.env` mediante
 `ADMIN_CORREO` y `ADMIN_PASSWORD`. No se incluyen contraseñas reales en este
-informe ni en el repositorio.
+informe ni en el repositorio. Además, `npm run db:demo` crea dos cuentas
+ficticias (ADMIN y EMPLEADO) que pueden seleccionarse desde el login; son solo
+para la demostración académica.
 
 ## Anexo B. Capturas para el informe
 

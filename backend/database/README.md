@@ -348,8 +348,8 @@ La respuesta esperada es `MongoServerError: Document failed validation` (código
 ## 10. Datos de demostración
 
 El script opcional `datos_demostracion.js` carga documentos ficticios con el
-prefijo `DEMO` para probar los modelos: un empleado, un producto, un cliente, una
-venta y un movimiento.
+prefijo `DEMO` para probar los modelos: dos cuentas de prueba (ADMIN y EMPLEADO),
+un producto, un cliente, una venta y un movimiento.
 
 Desde `backend/`:
 
@@ -359,10 +359,12 @@ npm run db:demo
 
 - Los datos están marcados como demostración (`DEMO-001`, `DEMO-VENTA-001`,
   `(demostración)` en el nombre, correos `@novasalud.test`).
-- El empleado demo tiene rol `EMPLEADO`, nunca `ADMIN`.
-- La contraseña se cifra con bcrypt. Si no se define `PASSWORD_DEMO` en
-  `backend/.env`, se genera una contraseña aleatoria y se muestra una sola vez en
-  la terminal; no se guarda en el repositorio.
+- Las cuentas demo son `admin.demo@novasalud.test` (ADMIN) y
+  `empleado.demo@novasalud.test` (EMPLEADO).
+- La contraseña de prueba es fija, se cifra con bcrypt y se completa
+  automáticamente al seleccionar la cuenta desde el login.
+- Son credenciales públicas solo para la demostración académica. No ejecutes
+  este script contra una base con datos reales.
 - Se puede ejecutar varias veces: actualiza los documentos demo en lugar de
   duplicarlos.
 

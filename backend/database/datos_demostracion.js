@@ -8,12 +8,10 @@
 // Uso (desde la carpeta backend/):
 //   npm run db:demo
 //
-// Si defines PASSWORD_DEMO en backend/.env se usa esa contraseña para el
-// empleado de demostración. Si no, se genera una contraseña aleatoria que solo
-// se muestra en esta ejecución (no se guarda en ningún archivo del repositorio).
+// Crea o actualiza dos cuentas ficticias para la demostración: una ADMIN y una
+// EMPLEADO. Sus credenciales son públicas y solo deben usarse en entornos de
+// prueba; no ejecutes este script contra una base con datos reales.
 // ============================================================================
-
-const crypto = require("crypto");
 
 const {
   conectarBaseDeDatos,
@@ -26,7 +24,21 @@ const Cliente = require("../models/Cliente");
 const Venta = require("../models/Venta");
 const Movimiento = require("../models/Movimiento");
 
-const CORREO_EMPLEADO_DEMO = "empleado.demo@novasalud.test";
+const CUENTAS_PRUEBA = [
+  {
+    correo: "admin.demo@novasalud.test",
+    nombre: "Administrador",
+    apellido: "de Prueba",
+    rol: "ADMIN",
+  },
+  {
+    correo: "empleado.demo@novasalud.test",
+    nombre: "Empleado",
+    apellido: "de Prueba",
+    rol: "EMPLEADO",
+  },
+];
+const PASSWORD_PRUEBA = "Demo12345";
 const CODIGO_PRODUCTO_DEMO = "DEMO-001";
 const CODIGO_VENTA_DEMO = "DEMO-VENTA-001";
 const MOTIVO_MOVIMIENTO_DEMO = "Carga inicial de demostración (datos ficticios)";
@@ -35,38 +47,34 @@ function mostrarAviso(mensaje) {
   console.log(`\n${mensaje}\n`);
 }
 
-async function crearEmpleadoDemo() {
-  const existente = await Usuario.findOne({ correo: CORREO_EMPLEADO_DEMO });
+async function crearCuentasPrueba() {
+  const cuentas = [];
 
-  if (existente) {
-    console.log("Empleado de demostración ya existente, no se modifica.");
-    return existente;
+  for (const datos of CUENTAS_PRUEBA) {
+    let usuario = await Usuario.findOne({ correo: datos.correo });
+
+    if (usuario) {
+      usuario.set({
+        nombre: datos.nombre,
+        apellido: datos.apellido,
+        correo: datos.correo,
+        rol: datos.rol,
+        estado: "ACTIVO",
+        password: PASSWORD_PRUEBA,
+      });
+    } else {
+      usuario = new Usuario({
+        ...datos,
+        estado: "ACTIVO",
+        password: PASSWORD_PRUEBA,
+      });
+    }
+
+    await usuario.save();
+    cuentas.push(usuario);
   }
 
-  const contrasenaDemo =
-    process.env.PASSWORD_DEMO || crypto.randomBytes(12).toString("base64url");
-
-  const empleado = await Usuario.create({
-    nombre: "Empleado",
-    apellido: "Demostración",
-    correo: CORREO_EMPLEADO_DEMO,
-    password: contrasenaDemo,
-    rol: "EMPLEADO",
-    estado: "ACTIVO",
-  });
-
-  if (!process.env.PASSWORD_DEMO) {
-    mostrarAviso(
-      [
-        "Contraseña temporal del empleado de demostración:",
-        `  ${contrasenaDemo}`,
-        "Solo se muestra ahora y no se guarda en el repositorio.",
-        "Es un usuario EMPLEADO de prueba: no lo uses como administrador real.",
-      ].join("\n")
-    );
-  }
-
-  return empleado;
+  return cuentas;
 }
 
 async function crearProductoDemo() {
@@ -239,7 +247,8 @@ async function main() {
 
   console.log("Cargando DATOS DE DEMOSTRACIÓN en nova_salud...");
 
-  const empleado = await crearEmpleadoDemo();
+  const cuentas = await crearCuentasPrueba();
+  const empleado = cuentas.find((cuenta) => cuenta.rol === "EMPLEADO");
   const producto = await crearProductoDemo();
   const adicionales = await crearProductosAdicionalesDemo();
   const cliente = await crearClienteDemo();
@@ -247,7 +256,10 @@ async function main() {
   const movimiento = await crearMovimientoDemo(producto, empleado);
 
   console.log("\nResumen de datos de demostración:");
-  console.log(`  Empleado:   ${empleado.correo} (rol ${empleado.rol})`);
+  console.log("  Cuentas de prueba:");
+  cuentas.forEach((cuenta) => {
+    console.log(`    ${cuenta.correo} (rol ${cuenta.rol})`);
+  });
   console.log(`  Producto:   ${producto.codigo} - ${producto.nombre}`);
   console.log(
     `  Otros:      ${adicionales.map((item) => item.codigo).join(", ")}`
@@ -259,7 +271,7 @@ async function main() {
   );
 
   mostrarAviso(
-    "Recuerda: son datos ficticios de demostración. No uses estas credenciales en producción."
+    "Recuerda: son datos y credenciales ficticias. No uses estas cuentas en producción."
   );
 }
 

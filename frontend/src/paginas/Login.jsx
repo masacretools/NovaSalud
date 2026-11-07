@@ -2,11 +2,42 @@ import { useState } from 'react'
 
 import { pedir } from '../api'
 
+// Credenciales ficticias para facilitar la demostración académica.
+// El script backend/database/datos_demostracion.js crea estas cuentas.
+const CUENTAS_PRUEBA = [
+  {
+    id: 'admin',
+    etiqueta: 'Administrador de prueba',
+    correo: 'admin.demo@novasalud.test',
+    password: 'Demo12345',
+  },
+  {
+    id: 'empleado',
+    etiqueta: 'Empleado de prueba',
+    correo: 'empleado.demo@novasalud.test',
+    password: 'Demo12345',
+  },
+]
+
 export default function Login({ alIngresar }) {
   const [correo, setCorreo] = useState('')
   const [password, setPassword] = useState('')
+  const [cuentaPrueba, setCuentaPrueba] = useState('')
   const [error, setError] = useState('')
   const [cargando, setCargando] = useState(false)
+
+  function seleccionarCuentaPrueba(evento) {
+    const id = evento.target.value
+    const cuenta = CUENTAS_PRUEBA.find((item) => item.id === id)
+
+    setCuentaPrueba(id)
+    setError('')
+
+    if (cuenta) {
+      setCorreo(cuenta.correo)
+      setPassword(cuenta.password)
+    }
+  }
 
   async function enviar(evento) {
     evento.preventDefault()
@@ -52,10 +83,35 @@ export default function Login({ alIngresar }) {
         <form className="login-caja" onSubmit={enviar}>
           <div>
             <h2>Iniciar sesión</h2>
-            <p className="ayuda">Ingresa con tu cuenta de administrador.</p>
+            <p className="ayuda">Ingresa con tu cuenta para acceder al panel.</p>
           </div>
 
           {error && <div className="alerta-error">{error}</div>}
+
+          <div className="login-prueba">
+            <div className="login-prueba-cabecera">
+              <strong>Acceso de prueba</strong>
+              <span>Solo demostración</span>
+            </div>
+            <label htmlFor="cuenta-prueba">Selecciona una cuenta</label>
+            <select
+              id="cuenta-prueba"
+              value={cuentaPrueba}
+              onChange={seleccionarCuentaPrueba}
+              disabled={cargando}
+            >
+              <option value="">Selecciona una cuenta de prueba...</option>
+              {CUENTAS_PRUEBA.map((cuenta) => (
+                <option key={cuenta.id} value={cuenta.id}>
+                  {cuenta.etiqueta}
+                </option>
+              ))}
+            </select>
+            <p>
+              Al elegir una cuenta se completan las credenciales. Estas cuentas
+              se crean con <code>npm run db:demo</code>.
+            </p>
+          </div>
 
           <div className="campo">
             <label htmlFor="correo">Correo electrónico</label>
@@ -63,7 +119,10 @@ export default function Login({ alIngresar }) {
               id="correo"
               type="email"
               value={correo}
-              onChange={(evento) => setCorreo(evento.target.value)}
+              onChange={(evento) => {
+                setCorreo(evento.target.value)
+                setCuentaPrueba('')
+              }}
               placeholder="admin@novasalud.test"
               autoComplete="username"
               required
@@ -76,7 +135,10 @@ export default function Login({ alIngresar }) {
               id="password"
               type="password"
               value={password}
-              onChange={(evento) => setPassword(evento.target.value)}
+              onChange={(evento) => {
+                setPassword(evento.target.value)
+                setCuentaPrueba('')
+              }}
               placeholder="Tu contraseña"
               autoComplete="current-password"
               required

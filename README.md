@@ -70,10 +70,14 @@ cd backend
 npm run db:demo
 ```
 
-Crea un empleado, cinco productos, un cliente, una venta y un movimiento
-claramente identificados con `DEMO`. Incluye un producto agotado, uno con stock
-bajo y uno próximo a vencer para probar las alertas. No crea administradores ni
-credenciales públicas.
+Crea dos cuentas de prueba (una ADMIN y una EMPLEADO), cinco productos, un
+cliente, una venta y un movimiento claramente identificados con `DEMO`. Incluye
+un producto agotado, uno con stock bajo y uno próximo a vencer para probar las
+alertas.
+
+En el login, el selector **Acceso de prueba** completa automáticamente el correo
+y la contraseña de cualquiera de las dos cuentas. Son cuentas ficticias: no las
+uses en producción ni ejecutes este script contra una base con datos reales.
 
 ## Scripts
 
