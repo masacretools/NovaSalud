@@ -1,0 +1,6 @@
+function envolver(controlador) {
+  return (req, res, next) =>
+    Promise.resolve(controlador(req, res, next)).catch(next);
+}
+
+module.exports = envolver;

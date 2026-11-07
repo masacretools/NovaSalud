@@ -78,22 +78,36 @@ const esquemaMovimiento = new mongoose.Schema(
 esquemaMovimiento.index({ fechaMovimiento: 1 });
 
 esquemaMovimiento.pre("validate", function validarStock() {
-  if (this.tipoMovimiento === "ENTRADA") {
-    if (this.stockNuevo !== this.stockAnterior + this.cantidad) {
-      this.invalidate(
-        "stockNuevo",
-        "En una entrada, el stock nuevo debe ser el stock anterior más la cantidad"
-      );
-    }
+  const cantidad = Number(this.cantidad);
+  const stockAnterior = Number(this.stockAnterior);
+  const stockNuevo = Number(this.stockNuevo);
+
+  if (
+    !Number.isFinite(cantidad) ||
+    !Number.isFinite(stockAnterior) ||
+    !Number.isFinite(stockNuevo)
+  ) {
+    return;
   }
 
-  if (this.tipoMovimiento === "SALIDA") {
-    if (this.stockNuevo !== this.stockAnterior - this.cantidad) {
-      this.invalidate(
-        "stockNuevo",
-        "En una salida, el stock nuevo debe ser el stock anterior menos la cantidad"
-      );
-    }
+  if (
+    this.tipoMovimiento === "ENTRADA" &&
+    stockNuevo !== stockAnterior + cantidad
+  ) {
+    this.invalidate(
+      "stockNuevo",
+      "En una entrada, el stock nuevo debe ser el stock anterior más la cantidad"
+    );
+  }
+
+  if (
+    this.tipoMovimiento === "SALIDA" &&
+    stockNuevo !== stockAnterior - cantidad
+  ) {
+    this.invalidate(
+      "stockNuevo",
+      "En una salida, el stock nuevo debe ser el stock anterior menos la cantidad"
+    );
   }
 });
 

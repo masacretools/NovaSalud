@@ -41,12 +41,6 @@ const esquemaProducto = new mongoose.Schema(
       type: Number,
       required: [true, "El precio de venta es obligatorio"],
       min: [0, "El precio de venta no puede ser negativo"],
-      validate: {
-        validator(valor) {
-          return valor >= this.precioCompra;
-        },
-        message: "El precio de venta no puede ser menor que el precio de compra",
-      },
     },
     stock: {
       type: Number,
@@ -108,8 +102,30 @@ const esquemaProducto = new mongoose.Schema(
 
 esquemaProducto.index({ nombre: 1 });
 
+// Compara dos campos del mismo documento: se valida al guardar el documento.
+esquemaProducto.pre("validate", function validarPrecios() {
+  const precioCompra = Number(this.precioCompra);
+  const precioVenta = Number(this.precioVenta);
+
+  if (!Number.isFinite(precioCompra) || !Number.isFinite(precioVenta)) {
+    return;
+  }
+
+  if (precioVenta < precioCompra) {
+    this.invalidate(
+      "precioVenta",
+      "El precio de venta no puede ser menor que el precio de compra"
+    );
+  }
+});
+
 esquemaProducto.pre("save", function actualizarFecha() {
   this.fechaActualizacion = new Date();
+});
+
+// Mantiene la fecha de actualización cuando se usa findOneAndUpdate o updateOne.
+esquemaProducto.pre(["findOneAndUpdate", "updateOne"], function actualizarFecha() {
+  this.set({ fechaActualizacion: new Date() });
 });
 
 module.exports = mongoose.model("Producto", esquemaProducto);
