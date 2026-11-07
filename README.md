@@ -118,8 +118,6 @@ credenciales públicas.
 
 ```
 NovaSalud/
-├── api/index.js              Función serverless para Vercel
-├── vercel.json               Configuración de despliegue
 ├── backend/
 │   ├── app.js                Aplicación Express
 │   ├── index.js              Arranque local
@@ -133,7 +131,9 @@ NovaSalud/
 └── frontend/
     ├── src/componentes/      Iconos y modal
     ├── src/paginas/          Login, Dashboard, Inventario, Ventas, Clientes, Alertas
-    ├── src/api.js            Cliente de API y formato
+    ├── src/api.js            Cliente de API, URL configurable y formato
+    ├── vercel.json           Fallback del SPA en Vercel
+    ├── .env.example          Ejemplo de VITE_API_URL
     └── vite.config.js        Proxy /api y host de desarrollo
 ```
 
@@ -147,28 +147,70 @@ cd frontend && npm run build         # compilación de producción
 Consulta `INFORME_NOVA_SALUD.md` para el detalle de las pruebas realizadas y las
 capturas que deben incluirse en el informe.
 
-## Despliegue en Vercel
+## Despliegue en Vercel con MongoDB Atlas
 
-El repositorio incluye `vercel.json` con:
+El despliegue recomendado usa **dos proyectos de Vercel sobre el mismo
+repositorio**, porque el backend es una aplicación Express y el frontend es un
+SPA de Vite:
 
-- Instalación de dependencias de backend y frontend.
-- Compilación de React en `frontend/dist`.
-- Función serverless `api/index.js` que reutiliza la API de Express.
-- Redirección de `/api/*` a la función y del resto de rutas a `index.html`.
+1. **Backend** (`backend/`): Vercel detecta Express y lo publica como un único
+   Vercel Function. No hace falta `api/index.js` ni rewrites manuales.
+2. **Frontend** (`frontend/`): Vercel compila Vite y sirve `dist` con
+   `frontend/vercel.json` como fallback del SPA.
 
-Pasos:
+### 1. Preparar MongoDB Atlas
 
-1. Crear un clúster gratuito en MongoDB Atlas y obtener la cadena de conexión.
-2. En Atlas, habilitar el acceso desde cualquier IP (`0.0.0.0/0`) para el entorno
-   académico o la IP de Vercel.
-3. Importar el repositorio en Vercel.
-4. Configurar las variables de entorno `MONGODB_URI` y `JWT_SECRET` en Vercel.
-5. Desplegar.
-6. Ejecutar los scripts de base de datos contra Atlas (`npm run db:crear`,
-   `npm run db:admin`) desde una máquina local apuntando `MONGODB_URI` al clúster.
+1. Crear un proyecto y un clúster gratuito M0 en MongoDB Atlas.
+2. En **Database Access**, crear un usuario con contraseña y rol `readWrite`
+   sobre la base `nova_salud`.
+3. En **Network Access**, permitir `0.0.0.0/0` para la entrega académica (o la
+   IP correspondiente).
+4. En **Connect → Drivers**, copiar la cadena `mongodb+srv://...` y agregar el
+   nombre de la base antes de `?`: `...mongodb.net/nova_salud?retryWrites=true...`
+
+### 2. Crear las colecciones en Atlas
+
+Desde la raíz del repositorio, con `mongosh` instalado:
+
+```bash
+mongosh "mongodb+srv://USUARIO:CONTRASENA@cluster.mongodb.net/nova_salud" \
+  --file backend/database/nova_salud.js
+```
+
+Luego, con `MONGODB_URI` apuntando a Atlas en `backend/.env`:
+
+```bash
+cd backend
+npm ci
+npm run db:admin
+npm run db:demo      # opcional
+```
+
+### 3. Desplegar el backend
+
+1. En Vercel: **Add New → Project** e importar este repositorio.
+2. En **Root Directory**, elegir `backend`.
+3. Vercel detecta Express automáticamente; no se necesita comando de build.
+4. Agregar variables de entorno:
+   - `MONGODB_URI` = cadena de Atlas con `/nova_salud`.
+   - `JWT_SECRET` = cadena larga y aleatoria.
+5. Desplegar y comprobar `https://TU-BACKEND.vercel.app/api/salud`.
+
+### 4. Desplegar el frontend
+
+1. Crear otro proyecto de Vercel con el mismo repositorio.
+2. En **Root Directory**, elegir `frontend`.
+3. Framework: Vite. Build: `npm run build`. Output: `dist`.
+4. Agregar `VITE_API_URL=https://TU-BACKEND.vercel.app/api`.
+5. Desplegar y probar el inicio de sesión.
+
+`VITE_API_URL` se incorpora al compilar: si cambia, hay que volver a desplegar el
+frontend. El backend permite CORS para que el frontend pueda llamarlo desde otro
+dominio.
 
 > El despliegue no fue ejecutado en este entorno: no hay cuenta de Vercel ni un
 > clúster de Atlas configurado. El proyecto queda preparado y funciona localmente.
+> Si se cambia de dominio, actualizar `VITE_API_URL` y volver a desplegar.
 
 ## Seguridad
 
