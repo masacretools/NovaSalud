@@ -10,7 +10,16 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+build
 *.local
+
+# Variables de entorno (solo se versiona el ejemplo)
+.env
+.env.local
+.env.*.local
+
+# Vercel
+.vercel
 
 # Editor directories and files
 .vscode/*

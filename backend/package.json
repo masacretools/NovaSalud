@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:crear": "mongosh --file database/nova_salud.js",
+    "db:demo": "node database/datos_demostracion.js",
+    "db:verificar": "node database/verificar_fase2.js",
+    "db:admin": "node database/crear_admin.js"
   },
   "keywords": [],
   "author": "",

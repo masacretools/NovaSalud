@@ -1,17 +1,34 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
+const {
+  conectarBaseDeDatos,
+  desconectarBaseDeDatos,
+} = require("./config/database");
+const app = require("./app");
 
-const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
+async function iniciarServidor() {
+  try {
+    const conexion = await conectarBaseDeDatos();
+    console.log(`Base de datos en uso: ${conexion.name}`);
 
-app.get("/", (req, res) => {
-  res.json({ ok: true, app: "Nova Salud API" });
-});
+    const servidor = app.listen(PORT, () => {
+      console.log(`Servidor en http://localhost:${PORT}`);
+    });
 
-app.listen(PORT, () => {
-  console.log(`Servidor en http://localhost:${PORT}`);
-});
+    async function cerrarServidor() {
+      servidor.close(async () => {
+        await desconectarBaseDeDatos();
+        console.log("Conexión a MongoDB cerrada.");
+        process.exit(0);
+      });
+    }
+
+    process.on("SIGINT", cerrarServidor);
+    process.on("SIGTERM", cerrarServidor);
+  } catch (error) {
+    console.error("No se pudo conectar a MongoDB:", error.message);
+    process.exit(1);
+  }
+}
+
+iniciarServidor();

@@ -113,38 +113,55 @@ const esquemaVenta = new mongoose.Schema(
 esquemaVenta.index({ fechaVenta: 1 });
 
 esquemaVenta.pre("validate", function validarImportes() {
-  if (!Array.isArray(this.productos)) {
+  if (!Array.isArray(this.productos) || this.productos.length === 0) {
     return;
   }
 
   this.productos.forEach((detalle, indice) => {
-    const subtotalCalculado = Number(
-      (detalle.cantidad * detalle.precioUnitario).toFixed(2)
-    );
-    const subtotalGuardado = Number(detalle.subtotal.toFixed(2));
+    const cantidad = Number(detalle.cantidad);
+    const precioUnitario = Number(detalle.precioUnitario);
+    const subtotal = Number(detalle.subtotal);
 
-    if (subtotalCalculado !== subtotalGuardado) {
+    if (
+      !Number.isFinite(cantidad) ||
+      !Number.isFinite(precioUnitario) ||
+      !Number.isFinite(subtotal)
+    ) {
       this.invalidate(
         `productos.${indice}.subtotal`,
-        "El subtotal del detalle debe conservar cantidad por precio unitario"
+        "El detalle debe tener cantidad, precio unitario y subtotal numéricos"
+      );
+      return;
+    }
+
+    const subtotalCalculado = Number((cantidad * precioUnitario).toFixed(2));
+
+    if (Number(subtotal.toFixed(2)) !== subtotalCalculado) {
+      this.invalidate(
+        `productos.${indice}.subtotal`,
+        "El subtotal del detalle debe ser cantidad por precio unitario"
       );
     }
   });
 
   const subtotalVenta = Number(
     this.productos
-      .reduce((acumulado, detalle) => acumulado + detalle.subtotal, 0)
+      .reduce((acumulado, detalle) => acumulado + Number(detalle.subtotal || 0), 0)
       .toFixed(2)
   );
+  const subtotal = Number(this.subtotal);
 
-  if (Number(this.subtotal.toFixed(2)) !== subtotalVenta) {
-    this.invalidate(
-      "subtotal",
-      "El subtotal debe ser la suma de los detalles"
-    );
+  if (!Number.isFinite(subtotal)) {
+    return;
   }
 
-  if (Number(this.total.toFixed(2)) < Number(this.subtotal.toFixed(2))) {
+  if (Number(subtotal.toFixed(2)) !== subtotalVenta) {
+    this.invalidate("subtotal", "El subtotal debe ser la suma de los detalles");
+  }
+
+  const total = Number(this.total);
+
+  if (Number.isFinite(total) && Number(total.toFixed(2)) < Number(subtotal.toFixed(2))) {
     this.invalidate("total", "El total no puede ser menor que el subtotal");
   }
 });
