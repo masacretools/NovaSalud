@@ -114,8 +114,10 @@ MongoDB (nova_salud)
 ```
 
 En desarrollo, Vite redirige `/api` al backend en `http://127.0.0.1:3000`. En
-producción, Vercel sirve el frontend compilado y ejecuta el backend como función
-serverless en `api/index.js`, que reutiliza la misma aplicación Express.
+producción se usan dos proyectos de Vercel: el backend Express se publica como
+un Vercel Function (detección automática de Express) y el frontend Vite se sirve
+como sitio estático. El frontend apunta al backend mediante `VITE_API_URL`, por
+lo que no depende de rewrites frágiles entre ambos.
 
 La conexión a MongoDB está centralizada en `backend/config/database.js`:
 reutiliza una única conexión, carga `backend/.env` y permite cambiar de MongoDB
@@ -225,6 +227,7 @@ El registro de una venta:
 - `paginas/Ventas.jsx` implementa el carrito, el historial y el detalle.
 - `paginas/Clientes.jsx` registra y edita clientes.
 - `paginas/Alertas.jsx` muestra los tres grupos de alertas.
+- `api.js` usa el proxy `/api` en local y `VITE_API_URL` en producción.
 - `index.css` define el panel responsive con colores azul, blanco y verde.
 
 ## 11. Pruebas realizadas
@@ -324,7 +327,7 @@ Resultado: **25 de 25 comprobaciones correctas**.
 | Historial y detalle de ventas | Funciona | Navegador |
 | Alertas de stock bajo, agotados y vencimientos | Funciona | Prueba de API y navegador |
 | Diseño responsive | Implementado, no probado en móvil físico | CSS |
-| Despliegue en Vercel | Preparado, no ejecutado | `vercel.json`, `api/index.js` |
+| Despliegue en Vercel | Configuración preparada (dos proyectos), no ejecutado | Express sin configuración manual y `frontend/vercel.json` |
 
 ### Limitaciones conocidas
 
@@ -353,8 +356,8 @@ Resultado: **25 de 25 comprobaciones correctas**.
 
 ## 14. Recomendaciones
 
-1. Configurar MongoDB Atlas y desplegar en Vercel, usando variables de entorno
-   para `MONGODB_URI` y `JWT_SECRET`.
+1. Configurar MongoDB Atlas y desplegar en Vercel como dos proyectos: backend
+   Express y frontend Vite, usando `MONGODB_URI`, `JWT_SECRET` y `VITE_API_URL`.
 2. Implementar anulación de ventas con reposición de stock y registro de
    movimientos de ajuste.
 3. Añadir reportes de ventas por período, producto y categoría, con exportación a

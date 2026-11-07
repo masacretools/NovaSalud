@@ -1,6 +1,11 @@
 const CLAVE_TOKEN = 'nova_salud_token'
 const CLAVE_USUARIO = 'nova_salud_usuario'
 
+// En local se usa el proxy /api de Vite. En producción se define VITE_API_URL
+// con la URL completa del backend desplegado, por ejemplo:
+// https://nova-salud-api.vercel.app/api
+const BASE_API = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '')
+
 export function leerSesion() {
   try {
     const token = localStorage.getItem(CLAVE_TOKEN)
@@ -32,7 +37,10 @@ export async function pedir(ruta, opciones = {}) {
     cabeceras.Authorization = `Bearer ${token}`
   }
 
-  const respuesta = await fetch(`/api${ruta}`, { ...opciones, headers: cabeceras })
+  const respuesta = await fetch(`${BASE_API}${ruta}`, {
+    ...opciones,
+    headers: cabeceras,
+  })
   let datos
 
   try {
