@@ -155,6 +155,61 @@ p {
   line-height: 1.5;
 }
 
+.login-prueba {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 14px;
+}
+
+.login-prueba-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.login-prueba-cabecera strong {
+  font-size: 0.86rem;
+}
+
+.login-prueba-cabecera span {
+  color: var(--ambar);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.login-prueba label {
+  color: #334155;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.login-prueba select {
+  width: 100%;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--blanco);
+  color: var(--texto);
+  outline: none;
+}
+
+.login-prueba select:focus {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.login-prueba p {
+  color: var(--texto-suave);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
 /* ---------- Estructura ---------- */
 .app {
   display: flex;
